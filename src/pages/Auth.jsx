@@ -1,7 +1,10 @@
 import React, { useState } from 'react'
+import { url } from '../data/config'
+import { toast } from 'react-toastify'
 
 const Auth = () => {
     const [selectedForm,setSelectedForm] = useState("signup")
+    const [loading,setloading] = useState(false)
     const [userData,setUserData] = useState({
         name:"",
         role:"",
@@ -21,8 +24,36 @@ const Auth = () => {
     const handleLoginChange =(name,value)=>{
         setloginUserData((prev)=>({...prev,[name]:value}))
     }
-    const handleSignup = ()=>{
+    const handleSignup = async(e)=>{
+        e.preventDefault();
+        try {
+            const response = await fetch(`${url}/user/register`,{
+                method:"POST",
+                headers:{
+                    "Content-Type":"application/json"
+                },
+                body:JSON.stringify(userData)
+            });
+            console.log(response,"response")
+
+            // if(!response.ok){
+            //     toast.error(response.message)
+            //     throw new Error("Signup failed")
+            // }
+            const data =await response.json()
+
+            if(!data.ok){
+                toast.error(data.message)
+            }
+        } catch (error) {
+            console.log(error,"error")
+        }
         console.log(userData)
+    }
+
+    const handleLogin = async(e)=>{
+        e.preventDefault()
+        console.log("login")
     }
   return (
     <div className=' flex justify-center items-center w-full '>
@@ -30,17 +61,17 @@ const Auth = () => {
         <h1 className='text-center text-xl font-semibold'>{selectedForm === "login" ? "Login" : "SignUp"}</h1>
 
         {selectedForm === "login" ?(
-            <form onSubmit={handleSignup} className='w-full  flex flex-col p-4 gap-4 '>
+            <form onSubmit={handleLogin} method='POST' className='w-full  flex flex-col p-4 gap-4 '>
            
-            <input type='text' name='email' value={userData.email} placeholder='Email' onChange={(e)=>handleOnChange("email",e.target.value.trimStart())} className='w-full px-2 py-1 border-[2px] rounded-md'/>
-            <input type='text' name='password' value={userData.password} placeholder='Password' onChange={(e)=>handleOnChange("password",e.target.value.trimStart())} className='w-full px-2 py-1 border-[2px] rounded-md'/>
+            <input type='text' name='email' value={loginUserData.email} placeholder='Email' onChange={(e)=>handleLoginChange("email",e.target.value.trimStart())} className='w-full px-2 py-1 border-[2px] rounded-md'/>
+            <input type='text' name='password' value={loginUserData.password} placeholder='Password' onChange={(e)=>handleLoginChange("password",e.target.value.trimStart())} className='w-full px-2 py-1 border-[2px] rounded-md'/>
             <button className='w-full py-1 text-center bg-black text-white font-semibold rounded-md cursor-pointer'>Login</button>
             <div className='flex justify-end items-center text-sm'>
-                <span>Create an account <span className='text-blue-500 font-semibold cursor-pointer' onClick={()=>{setSelectedForm("signup")}}>SignUp</span></span>
+                <span>Create an account <span className='text-blue-500 font-semibold cursor-pointer' onClick={()=>{setSelectedForm("signup")}}>Login</span></span>
             </div>
           </form>
         ):(
-            <form onSubmit={handleSignup} className='w-full  flex flex-col p-4 gap-4 '>
+            <form onSubmit={handleSignup} method='POST' className='w-full  flex flex-col p-4 gap-4 '>
             <input type='text' name='name' value={userData.name} placeholder='Name' onChange={(e)=>handleOnChange("name",e.target.value.trimStart())} className='w-full px-2 py-1 border-[2px] rounded-md'/>
             <input type='text' name='email' value={userData.email} placeholder='Email' onChange={(e)=>handleOnChange("email",e.target.value.trimStart())} className='w-full px-2 py-1 border-[2px] rounded-md'/>
             <input type='text' name='password' value={userData.password} placeholder='Password' onChange={(e)=>handleOnChange("password",e.target.value.trimStart())} className='w-full px-2 py-1 border-[2px] rounded-md'/>
