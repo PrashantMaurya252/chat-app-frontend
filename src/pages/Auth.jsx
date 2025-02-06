@@ -1,10 +1,14 @@
 import React, { useState } from 'react'
 import { url } from '../data/config'
 import { toast } from 'react-toastify'
+import { useNavigate } from 'react-router-dom'
 
 const Auth = () => {
+
+    const navigate = useNavigate()
     const [selectedForm,setSelectedForm] = useState("signup")
     const [loading,setloading] = useState(false)
+
     const [userData,setUserData] = useState({
         name:"",
         role:"",
@@ -24,8 +28,11 @@ const Auth = () => {
     const handleLoginChange =(name,value)=>{
         setloginUserData((prev)=>({...prev,[name]:value}))
     }
+
+
     const handleSignup = async(e)=>{
         e.preventDefault();
+        setloading(true)
         try {
             const response = await fetch(`${url}/user/register`,{
                 method:"POST",
@@ -34,26 +41,51 @@ const Auth = () => {
                 },
                 body:JSON.stringify(userData)
             });
-            console.log(response,"response")
 
-            // if(!response.ok){
-            //     toast.error(response.message)
-            //     throw new Error("Signup failed")
-            // }
             const data =await response.json()
 
-            if(!data.ok){
-                toast.error(data.message)
-            }
+           if(data.success){
+            toast.success("User created successfully")
+            setSelectedForm("login")
+           }
         } catch (error) {
             console.log(error,"error")
+        }finally{
+            setloading(false)
         }
-        console.log(userData)
     }
 
     const handleLogin = async(e)=>{
         e.preventDefault()
-        console.log("login")
+        setloading(true)
+        try {
+            const response = await fetch(`${url}/user/login`,{
+                method:"POST",
+                headers:{
+                    "Content-Type":"application/json"
+                },
+                body:JSON.stringify(loginUserData)
+            });
+
+            const data =await response.json()
+
+            if(data.success){
+                toast.success("welcome")
+                localStorage.setItem("token",data.token)
+                localStorage.setItem("user",JSON.stringify(data.user))
+                navigate('/chat')
+
+            }else{
+                toast.error(data.message)
+            }
+
+            
+        } catch (error) {
+            console.log(error,"error")
+        }finally{
+            setloading(false)
+        }
+        
     }
   return (
     <div className=' flex justify-center items-center w-full '>
@@ -65,9 +97,9 @@ const Auth = () => {
            
             <input type='text' name='email' value={loginUserData.email} placeholder='Email' onChange={(e)=>handleLoginChange("email",e.target.value.trimStart())} className='w-full px-2 py-1 border-[2px] rounded-md'/>
             <input type='text' name='password' value={loginUserData.password} placeholder='Password' onChange={(e)=>handleLoginChange("password",e.target.value.trimStart())} className='w-full px-2 py-1 border-[2px] rounded-md'/>
-            <button className='w-full py-1 text-center bg-black text-white font-semibold rounded-md cursor-pointer'>Login</button>
+            <button disabled={loading} className='w-full py-1 text-center bg-black text-white font-semibold rounded-md cursor-pointer'>{loading ? "Loading" : "Login"}</button>
             <div className='flex justify-end items-center text-sm'>
-                <span>Create an account <span className='text-blue-500 font-semibold cursor-pointer' onClick={()=>{setSelectedForm("signup")}}>Login</span></span>
+                <span>Create an account <span className='text-blue-500 font-semibold cursor-pointer' onClick={()=>{setSelectedForm("signup")}}>Sign Up</span></span>
             </div>
           </form>
         ):(
@@ -86,7 +118,7 @@ const Auth = () => {
                     
                 </select>
             </div>
-            <button className='w-full py-1 text-center bg-black text-white font-semibold rounded-md cursor-pointer'>SignUp</button>
+            <button disabled={loading} className='w-full py-1 text-center bg-black text-white font-semibold rounded-md cursor-pointer'>{loading ? "Loading":"SignUp"}</button>
             <div className='flex justify-end items-center text-sm'>
                 <span>Already have an account ? <span className='text-blue-500 font-semibold cursor-pointer' onClick={()=>{setSelectedForm("login")}}>Login</span></span>
             </div>
