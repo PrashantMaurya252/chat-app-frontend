@@ -2,13 +2,16 @@ import React, { useContext, useEffect, useState } from "react";
 import { mainContext } from "../context/GlobalContext";
 import { toast } from "react-toastify";
 import { url } from "../data/config";
+import { socket } from "../socket";
 
 const Messages = () => {
 
-  const {token} = useContext(mainContext)
+
   const [selectedUser, setSelectedUser] = useState(null);
   const [allUsers,setAllUsers] = useState([])
+  const [conversations,setConversations] = useState([])
   const [message,setMessage] = useState("")
+  const [onlineUsers,setOnlineUsers] = useState([])
   const isOnline = false;
 
 
@@ -53,7 +56,8 @@ const Messages = () => {
 
       const data = await response.json()
       if(data.success){
-        console.log("Success")
+        
+        setConversations(data.messages)
       }
     } catch (error) {
        console.log(error)
@@ -62,9 +66,17 @@ const Messages = () => {
 
   useEffect(()=>{
     getAllUsers()
+    socket.on("getOnlineUsers",(users)=>{
+      
+      setOnlineUsers(users)
+    })
     if(selectedUser){
       conversation()
     }
+
+    return () => {
+      socket.off("getOnlineUsers"); 
+  };
   },[selectedUser])
 
   // useEffect(()=>{
@@ -99,7 +111,7 @@ const Messages = () => {
     }
   }
 
-  
+  // console.log(typeof  JSON.parse(localStorage.getItem("user"))._id,"user")
 
   
   return (
@@ -121,8 +133,8 @@ const Messages = () => {
                   <h1 className="text-lg font-semibold">{item.name}</h1>
                   <p>{item.role}</p>
                 </div>
-                <span className="text-sm">
-                  {isOnline ? "Online" : "Offline"}
+                <span className={`text-sm ${item.isOnline ? "text-green-500":"text-red-500"}`}>
+                  {item.isOnline ? "Online" : "Offline"}
                 </span>
               </div>
             </div>
@@ -131,9 +143,14 @@ const Messages = () => {
       </div>
       <div className="border-l-[2px] border-black h-full w-[70%] relative">
         {selectedUser ? (
-          <div className="overflow-y-scroll">
+          <div className="overflow-y-scroll w-full h-full">
             <h1 className="w-full text-xl font-semibold  p-4 border-b-[3px]">{selectedUser.name}</h1>
             {/* {selectedUser?.lastMessage} */}
+            {conversations.length === 0 ? (<span className="flex flex-col w-full h-full justify-center items-center">No Message To Show</span>):(<div className="flex flex-col">
+              {conversations?.map((item,index)=>(
+                <span key={index} >{item.message}</span>
+              ))}
+            </div>)}
             <div className="w-full flex justify-between items-center gap-2 absolute bottom-0 right-0">
               <input
                 type="text"
