@@ -1,9 +1,43 @@
-import React, { useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
+import { mainContext } from "../context/GlobalContext";
+import { toast } from "react-toastify";
+import { url } from "../data/config";
 
 const Messages = () => {
+
+  const {token} = useContext(mainContext)
   const [selectedUser, setSelectedUser] = useState(null);
+  const [allUsers,setAllUsers] = useState([])
   const [message,setMessage] = useState("")
   const isOnline = false;
+
+  
+
+  const getAllUsers = async()=>{
+    try {
+      const response =await fetch(`${url}/user/all-users`,{
+        method:"GET",
+        headers:{
+          authorization:token,
+          "Content-Type":"application/json"
+        }
+      })
+
+      if(!response.ok){
+        throw new Error(`Error ${response.status}`)
+      }
+      const data = await  response.json()
+      if(data.success){
+        toast.success("all users get")
+      }
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
+  useEffect(()=>{
+    getAllUsers()
+  },[])
   const users = [
     {
       id: 1,

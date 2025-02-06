@@ -1,7 +1,7 @@
 import { createContext, useEffect, useState } from "react"
 
 
-const mainContext = createContext()
+export const mainContext = createContext()
 
 const GlobalContext = ({children}) => {
     const [user,setUser] = useState(null)
