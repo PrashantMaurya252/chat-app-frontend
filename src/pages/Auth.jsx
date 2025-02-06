@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import  { useState } from 'react'
 import { url } from '../data/config'
 import { toast } from 'react-toastify'
 import { useNavigate } from 'react-router-dom'
@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom'
 const Auth = () => {
 
     const navigate = useNavigate()
-    const [selectedForm,setSelectedForm] = useState("signup")
+    const [selectedForm,setSelectedForm] = useState("login")
     const [loading,setloading] = useState(false)
 
     const [userData,setUserData] = useState({
