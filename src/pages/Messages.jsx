@@ -11,6 +11,7 @@ const Messages = () => {
   const [message,setMessage] = useState("")
   const isOnline = false;
 
+
   
 
   const getAllUsers = async()=>{
@@ -18,7 +19,7 @@ const Messages = () => {
       const response =await fetch(`${url}/user/all-users`,{
         method:"GET",
         headers:{
-          authorization:token,
+          authorization:`Bearer ${localStorage.getItem("token")}`,
           "Content-Type":"application/json"
         }
       })
@@ -28,70 +29,84 @@ const Messages = () => {
       }
       const data = await  response.json()
       if(data.success){
-        toast.success("all users get")
+        setAllUsers(data.users)
+        
       }
     } catch (error) {
       console.log(error)
     }
   }
 
+  const conversation = async()=>{
+    try {
+      const response = await fetch(`${url}/messages/all/${selectedUser._id}`,{
+        method:"GET",
+        headers:{
+          authorization:`Bearer ${localStorage.getItem("token")}`,
+          "Content-Type":"Application/json"
+        }
+      })
+
+      if(!response.ok){
+        throw new Error("Something went wrong")
+      }
+
+      const data = await response.json()
+      if(data.success){
+        console.log("Success")
+      }
+    } catch (error) {
+       console.log(error)
+    }
+  }
+
   useEffect(()=>{
     getAllUsers()
-  },[])
-  const users = [
-    {
-      id: 1,
-      name: "Alice Johnson",
-      username: "alice_j",
-      avatar: "https://randomuser.me/api/portraits/women/1.jpg",
-      status: "online",
-      lastMessage: "Hey! How are you?",
-      lastSeen: "2 minutes ago",
-    },
-    {
-      id: 2,
-      name: "Bob Williams",
-      username: "bob_w",
-      avatar: "https://randomuser.me/api/portraits/men/2.jpg",
-      status: "offline",
-      lastMessage: "See you tomorrow!",
-      lastSeen: "1 hour ago",
-    },
-    {
-      id: 3,
-      name: "Charlie Brown",
-      username: "charlie_b",
-      avatar: "https://randomuser.me/api/portraits/men/3.jpg",
-      status: "online",
-      lastMessage: "Let's catch up later.",
-      lastSeen: "Just now",
-    },
-    {
-      id: 4,
-      name: "David Smith",
-      username: "david_s",
-      avatar: "https://randomuser.me/api/portraits/men/4.jpg",
-      status: "away",
-      lastMessage: "Busy right now, talk later.",
-      lastSeen: "30 minutes ago",
-    },
-    {
-      id: 5,
-      name: "Emily Davis",
-      username: "emily_d",
-      avatar: "https://randomuser.me/api/portraits/women/5.jpg",
-      status: "online",
-      lastMessage: "Did you see the new update?",
-      lastSeen: "5 minutes ago",
-    },
-  ];
+    if(selectedUser){
+      conversation()
+    }
+  },[selectedUser])
+
+  // useEffect(()=>{
+  //   if(selectedUser){
+  //     conversation()
+  //   }
+  // },[selectedUser])
+
+  
+  
+  const handleSendMessage = async()=>{
+    try {
+      const response = await fetch(`${url}/messages/send/${selectedUser._id}`,{
+        method:"POST",
+        headers:{
+          authorization:`Bearer ${localStorage.getItem("token")}`,
+          "Content-Type":"Application/json",
+        },
+        body:JSON.stringify({message})
+      })
+
+      if(!response.ok){
+        throw new Error("Could not send message")
+      }
+
+      const data = await response.json()
+      if(data.success){
+        console.log(data)
+      }
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
+  
 
   
   return (
     <div className="w-full h-[90vh] px-5 flex ">
       <div className="w-[30%] p-5">
         <div className="flex flex-col gap-2">
-          {users?.map((item, index) => (
+          {allUsers?.map((item, index) => (
             <div
               key={index}
               className="flex justify-start items-center gap-2 cursor-pointer border-b pb-3"
@@ -104,7 +119,7 @@ const Messages = () => {
               <div className="flex justify-between items-center w-full">
                 <div className="flex flex-col gap-2 ">
                   <h1 className="text-lg font-semibold">{item.name}</h1>
-                  <p>{item.lastMessage}</p>
+                  <p>{item.role}</p>
                 </div>
                 <span className="text-sm">
                   {isOnline ? "Online" : "Offline"}
@@ -117,7 +132,8 @@ const Messages = () => {
       <div className="border-l-[2px] border-black h-full w-[70%] relative">
         {selectedUser ? (
           <div className="overflow-y-scroll">
-            {selectedUser?.lastMessage}
+            <h1 className="w-full text-xl font-semibold  p-4 border-b-[3px]">{selectedUser.name}</h1>
+            {/* {selectedUser?.lastMessage} */}
             <div className="w-full flex justify-between items-center gap-2 absolute bottom-0 right-0">
               <input
                 type="text"
@@ -129,7 +145,7 @@ const Messages = () => {
                 }
                 className="w-full px-2 py-1 border-[2px] rounded-md"
               />
-              <button className="bg-blue-500 text-white px-2 py-1 font-semibold rounded-md cursor-pointer">Send</button>
+              <button className="bg-blue-500 text-white px-2 py-1 font-semibold rounded-md cursor-pointer" onClick={handleSendMessage}>Send</button>
             </div>
           </div>
         ) : (
